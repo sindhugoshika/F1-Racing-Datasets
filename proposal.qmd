@@ -1,0 +1,196 @@
+---
+title: "Project Proposal"  
+subtitle: "Formula 1 - Analyze to Action"
+author: 
+  - name: "Pixels and Patterns"
+    affiliations:
+      - name: "College of Information Science, University of Arizona"
+      
+format:
+  html:
+    code-tools: true
+    code-overflow: wrap
+    code-line-numbers: true
+    embed-resources: true
+editor: visual
+code-annotations: hover
+execute:
+  warning: false
+---
+
+## High level Goal
+
+To analyze the F1 dataset to understand and compare driver and team performances across Formula 1 races in multiple seasons, tracks.
+
+## Project Goals & Motivation:
+
+The project focuses on analyzing and visualizing Formula 1 race data using the f1DataR package, which provides access to historical race results, driver information, and circuit details. Motorsport analysis is often opaque and challenging due to the complexity of the data involved.The aim is to extract insights from various seasons, focusing on specific tracks and team performance, including visualizing race times, positions, and the influence of circuit characteristics. Through this analysis, the project aims to offer a deeper understanding of race outcomes, driver performance, and trends across different seasons, with a particular focus on specific Grand Prix events.This analysis can benefit teams, fans, and potential sponsors interested in understanding the factors that impact success in racing.
+
+## Dataset Description:
+
+The [FastF1 dataset](https://docs.fastf1.dev/) is an open-source data library designed for motorsport analysis, offering telemetry, race lap data, sector times, pit stop events, and positional data for every Formula 1 race. We chose this dataset because it provides comprehensive race data, allowing us to break down each race into analyzable segments. The dataset dimensions include variables like time, speed, lap position, and driver information, making it possible to carry out detailed performance comparisons.
+
+```{r}
+#| label: load-pkgs
+#| message: false
+#| warning: false
+#| error: false
+#install.packages("f1dataR") # run to install F1 dataset package
+library(f1dataR)
+# setup_fastf1() # Run only once when loading dataset for first time
+# reticulate::py_module_available("fastf1") should return TRUE if setup is successful
+library(ggplot2)
+library(dplyr)
+library(ggmap)
+```
+
+## Dataset
+
+```{r}
+#| label: load-dataset
+#| message: false
+#| warning: false
+#| error: false
+
+library(f1dataR)
+
+#help(package = "f1DataR")
+
+#Example
+
+# Load the drivers data for 2021 season
+drivers_data <- load_drivers(2021)
+head(drivers_data)
+```
+
+```{r}
+#| label: load-session
+#| message: false
+#| warning: false
+#| error: false
+# Example: load session results for a specific round in 2021
+session_results <- load_session_laps(2021, round = 1)
+head(session_results)
+```
+
+## Questions
+
+## 1) How can we visualize the race winners on the Circuit de Monaco over the past four years (2019-2023) in a clear and insightful way using R?
+
+#### Description:
+
+-   `load_results`: To retrieve the race results for each season, including the race winners and their finishing positions.
+
+-   `load_circuits`: To identify the Circuit de Monaco and filter the results specific to this circuit.
+
+-   `load_drivers`: To map driver IDs to their names and other details like nationality for better visualization context.
+
+-   `load_constructors`: To identify the teams associated with each race winner.
+
+This question was chosen to explore the historical performance of drivers and teams on one of the most iconic circuits in Formula 1, providing a focused analysis of winners and trends at the Circuit de Monaco.
+
+1.  **Highlighting Historical Trends:** Analyzing race winners over multiple years provides a concise overview of driver and team dominance on this prestigious circuit. Offers insights into the consistency of performance at the Circuit de Monaco, where driver skill is often a significant factor due to its technical layout.
+
+2.  **Focus on a High-Profile Circuit:** The Circuit de Monaco is one of the most famous tracks in Formula 1. A focused analysis here adds value to the storytelling of past seasons.
+
+3.  **Constructor Dominance:** By visualizing constructor wins, the analysis highlights which teams have excelled on this circuit, reflecting their car’s ability to perform in a highly technical environment.
+
+4.  **Engaging Visual Appeal:** Create a bar chart or timeline showing the race winners over the past four years. Annotate each bar with the driver’s name, constructor, and the year of the race. Use a donut or pie chart to show the distribution of wins by constructors across the four years, highlighting team dominance.
+
+5.  **Actionable Insights:** Teams and analysts can use these insights to understand what factors contribute to success at the Circuit de Monaco. Fans gain a clearer picture of how driver and team dynamics influence race outcomes at this iconic venue.
+
+This analysis blends historical data with engaging visualizations, offering a compelling narrative about past performances on one of Formula 1’s most challenging circuits.
+
+## 2) Using the f1dataR package in R, how can you analyze and visualize a Formula 1 driver’s performance by plotting their speed and throttle data during a lap? What insights can be gained from these visualizations?
+
+#### Description:
+
+-   `load_driver_telemetry`: To retrieve telemetry data for a specific driver, including speed, throttle, braking, and distance covered during a lap.
+
+-   `load_laps`: To identify the fastest lap for the driver or select a specific lap for detailed analysis.
+
+This question was chosen because it focuses on the intricate details of a driver’s performance during a race, highlighting how telemetry data can offer granular insights into driving style and vehicle behavior.
+
+1.  **Understanding Driver Behavior:** Analyzing speed and throttle patterns provides insight into the driver’s approach to critical sections of the track, such as acceleration zones, braking points, and corner exits. Highlights driving style differences, such as aggressive or conservative throttle usage.
+
+2.  **Evaluating Lap Efficiency:** By focusing on one lap, particularly the fastest lap, the visualization showcases how efficiently a driver maximizes speed and minimizes throttle lag. Identifies areas where the driver may lose or gain time relative to competitors.
+
+3.  **Circuit-Specific Insights:** The analysis reveals how drivers adapt their performance to track characteristics, such as tight corners in Monaco versus high-speed straights at Monza. Offers a comparison of how circuit layout impacts the balance between speed and throttle usage.
+
+4.  **Engaging Visual Appeal:** Create a line plot with `distance` on the x-axis and `speed` on the y-axis to show how speed varies over the course of a lap. Use color to represent throttle usage. Overlay key circuit sections (e.g., straights, corners, DRS zones) on the plot to provide additional context.
+
+5.  **Actionable Insights:** Teams can use these insights to refine car setup and driver strategies, focusing on optimizing speed and throttle performance in specific track sections. Enables targeted improvements for both driver training and vehicle engineering.
+
+By leveraging telemetry data, this analysis not only provides a deep dive into a driver’s performance but also showcases the potential of combining raw data with effective visualizations to tell a compelling performance story.
+
+## 3) How do each F1 team’s lap times improve over the course of a race, and how do these improvements compare across different circuit types?
+
+#### Description:
+
+-   `load_laps`: To gather lap-by-lap timing data for each team and driver.
+
+-   `load_circuits`: To identify the type of circuit (e.g., street circuit, high-speed circuit, technical circuit).
+
+This question was selected because it provides a comprehensive analysis of team performance trends throughout a race, offering insights into the dynamics of lap time improvements and how these are influenced by the nature of the circuit. Key reasons for choosing this question include:
+
+1.  **Understanding Team Dynamics**: Examining lap time improvements sheds light on each team's performance curve, including tire management, fuel weight reduction, and mid-race strategies. Highlights which teams excel at adapting to race conditions, making it possible to identify consistent patterns or anomalies.
+
+2.  **Circuit-Specific Insights**: By comparing circuit types (e.g., technical tracks like Monaco vs. high-speed tracks like Monza), we can understand how track characteristics influence team performance.
+
+3.  **Broader Performance Trends**: Investigating lap time trends allows for the identification of external factors, such as weather conditions, safety car periods, or optimal pit stop windows, that affect lap times across races.
+
+4.  **Comparing Constructors**: Provides a head-to-head analysis of top constructors like Mercedes, Red Bull, and Ferrari, as well as midfield teams, offering a deeper understanding of competitiveness in different scenarios.
+
+5.  **Engaging Visual Appeal**: A line plot showing lap time trends is highly visual and engaging, allowing viewers to easily track improvements over time. Faceted plots for circuit types enable intuitive comparisons, adding depth to the analysis.
+
+6.  **Actionable Insights**: Teams can use these insights to refine race strategies and optimize car setups for specific circuit types, making this analysis valuable to engineers and strategists.
+
+By combining race performance data with circuit characteristics, this question not only tells the story of how teams perform but also provides a nuanced comparison of their adaptability across various conditions, making it both technically insightful and visually compelling.
+
+## 4) What is the relationship between pit stop timing and overall race position for top teams?
+
+**Description:**
+
+-   `load_pitstops`: To gather data about pit stop timing (lap) and duration for each driver during a race.
+
+-   `load_results`: To obtain the final race positions of drivers and their associated points scored.
+
+This question was selected to explore the strategic importance of pit stops in Formula 1 racing, which are critical moments that can significantly influence race outcomes. By analyzing the relationship between pit stop timing and overall race position, we aim to uncover:
+
+1.  **Strategic Decisions**: Pit stop timing reflects a team's strategic choices regarding tire degradation, fuel loads, and track conditions. Understanding how these decisions correlate with race positions can highlight successful and unsuccessful strategies.
+
+2.  **Competitive Insights**: Examining top teams provides a focused analysis of how elite constructors (like Mercedes, Red Bull, and Ferrari) leverage pit stop timing to gain an edge in highly competitive races.
+
+3.  **Driver Performance**: Highlight how drivers' performances are affected by pit stop timing. For example, a well-timed pit stop may help a driver overtake competitors or secure a podium finish.
+
+4.  **Visualization Appeal**: A scatter plot showing pit stop laps versus final race positions, annotated with key drivers and teams, provides a clear and compelling way to communicate the story of strategic impact in a race.
+
+5.  **Broader Implications**: This analysis is relevant to understanding race dynamics and can provide actionable insights for teams, fans, and analysts interested in optimizing race outcomes.
+
+By focusing on the interplay between pit stop timing and race positions, this question delves into the tactical heart of Formula 1, blending data-driven analysis with storytelling about race-day decision-making.
+
+## Weekly Plan of Attack
+
++---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
+| Task Name                                   | Status      | Assignee  | Due    | Priority | Summary                                                                                                                               |
++=============================================+=============+===========+========+==========+=======================================================================================================================================+
+| Data Acquisition & Data Cleaning            | Started     | Yogeshwar | Week 1 | High     | Download and explore the FastF1 dataset to understand structure and variables.                                                        |
++---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
+| Feature Engineering                         | Not Started | Sanjeev   | Week 2 | High     | Develop additional features like lap averages, sector times, and pit stop efficiency.                                                 |
++---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
+| Exploratory Analysis - Question 1,          | Not Started | Sanjeev,  | Week 3 | High     | Answer Questions and Generate visualizations and summaries to identify trends.                                                        |
+|                                             |             |           |        |          |                                                                                                                                       |
+| Question 2,                                 |             | Yogeshwar |        |          |                                                                                                                                       |
+|                                             |             |           |        |          |                                                                                                                                       |
+| Question 3,                                 |             | Sahana    |        |          |                                                                                                                                       |
+|                                             |             |           |        |          |                                                                                                                                       |
+| Question 4                                  |             | Sindhu    |        |          |                                                                                                                                       |
++---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
+| Report Writing & Final Project Presentation | Not Started | Sanjeev,  | Week 4 | High     | Compile findings, methods, and conclusions in a formal report. Prepare presentation slides and summary for final project presentation |
+|                                             |             |           |        |          |                                                                                                                                       |
+|                                             |             | Yogeshwar |        |          |                                                                                                                                       |
+|                                             |             |           |        |          |                                                                                                                                       |
+|                                             |             | Sahana    |        |          |                                                                                                                                       |
+|                                             |             |           |        |          |                                                                                                                                       |
+|                                             |             | Sindhu    |        |          |                                                                                                                                       |
++---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
