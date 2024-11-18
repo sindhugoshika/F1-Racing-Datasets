@@ -44,6 +44,8 @@ library(dplyr)
 library(ggmap)
 ```
 
+f1dataR is an R library, not a dataset. It provides programmatic access to Formula 1 race data via the FastF1 library, allowing users to fetch dynamic data such as race results and driver telemetry. Data wrangling is required to clean, filter, and transform the raw data retrieved through f1dataR functions for analysis. Functions like `load_driver_telemetry` are pre-defined utilities within the library, designed to simplify access to specific datasets, such as driver telemetry or race statistics.
+
 ## Dataset
 
 ```{r}
@@ -194,3 +196,37 @@ By focusing on the interplay between pit stop timing and race positions, this qu
 |                                             |             |           |        |          |                                                                                                                                       |
 |                                             |             | Sindhu    |        |          |                                                                                                                                       |
 +---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
+
+## Project Structure
+
+```{r}
+project-2-pixels-patterns/
+├── data/
+│   ├── README.md               # Description of data sources and formats
+│   ├── raw/                    # Raw data files fetched from `f1dataR`
+│   ├── processed/              # Cleaned and prepared data files
+├── styles/
+│   ├── custom_styles.scss      # Custom styling for the project
+│   ├── styles.css              # Compiled CSS file
+│   └── README.md               # Documentation for styling
+├── documents/
+│   ├── proposal.qmd            # Initial project proposal
+│   ├── methodology.md          # Detailed project methodology
+│   ├── showcase_poster.pptx    # Presentation poster
+│   └── README.md               # Description of documents
+├── presentation_images/
+│   ├── slide1.png              # Images for the presentation
+│   ├── slide2.png              # Additional presentation images
+│   └── README.md               # Description of presentation images
+├── .gitignore                  # Files and folders to be ignored by git
+├── README.md                   # Overview of the project and repository
+├── _quarto.yml                 # Configuration for Quarto project
+├── index.qmd                   # Main Quarto project page
+├── presentation.qmd            # Quarto-based presentation
+└── analysis/
+    ├── data_wrangling.R        # Scripts for data processing
+    ├── visualization.R         # Scripts for creating visualizations
+    ├── analysis.R              # Analytical calculations
+    └── README.md               # Description of analysis scripts
+
+```
