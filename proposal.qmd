@@ -28,7 +28,7 @@ The project focuses on analyzing and visualizing Formula 1 race data using the f
 
 ## Dataset Description:
 
-The [FastF1 dataset](https://docs.fastf1.dev/) is an open-source data library designed for motorsport analysis, offering telemetry, race lap data, sector times, pit stop events, and positional data for every Formula 1 race. We chose this dataset because it provides comprehensive race data, allowing us to break down each race into analyzable segments. The dataset dimensions include variables like time, speed, lap position, and driver information, making it possible to carry out detailed performance comparisons.
+The fastf1 package is a Python library designed for accessing and analyzing Formula 1 data, making it especially popular among F1 enthusiasts and data analysts interested in motorsports. The package provides access to various data sources, including telemetry, lap times, pit stops, race results, driver information, and more, by leveraging data from the official F1 timing systems and other sources. It offers tools for visualizing race telemetry, analyzing driver performance, and even creating lap-by-lap comparisons. This functionality allows users to dive deep into dimensions like lap speed, pit stop strategy, tire usage, driver comparisons, and session-specific data (qualifying, practice, races), making it a versatile tool for detailed F1 analytics and storytelling.
 
 ```{r}
 #| label: load-pkgs
@@ -103,6 +103,8 @@ This question was chosen to explore the historical performance of drivers and te
 
 This analysis blends historical data with engaging visualizations, offering a compelling narrative about past performances on one of Formula 1’s most challenging circuits.
 
+Plot: We are planning to use track maps over few years to visuliase the winners over years.
+
 ## 2) Using the f1dataR package in R, how can you analyze and visualize a Formula 1 driver’s performance by plotting their speed and throttle data during a lap? What insights can be gained from these visualizations?
 
 #### Description:
@@ -124,6 +126,8 @@ This question was chosen because it focuses on the intricate details of a driver
 5.  **Actionable Insights:** Teams can use these insights to refine car setup and driver strategies, focusing on optimizing speed and throttle performance in specific track sections. Enables targeted improvements for both driver training and vehicle engineering.
 
 By leveraging telemetry data, this analysis not only provides a deep dive into a driver’s performance but also showcases the potential of combining raw data with effective visualizations to tell a compelling performance story.
+
+Plot: Planning to use stacked bar plot for visualisation with improved gganimate() function.
 
 ## 3) How do each F1 team’s lap times improve over the course of a race, and how do these improvements compare across different circuit types?
 
@@ -149,6 +153,8 @@ This question was selected because it provides a comprehensive analysis of team 
 
 By combining race performance data with circuit characteristics, this question not only tells the story of how teams perform but also provides a nuanced comparison of their adaptability across various conditions, making it both technically insightful and visually compelling.
 
+Plot: Altough we are still unclear on which plot to select, we would try out on scatter plots and various other plots.
+
 ## 4) What is the relationship between pit stop timing and overall race position for top teams?
 
 **Description:**
@@ -170,6 +176,8 @@ This question was selected to explore the strategic importance of pit stops in F
 5.  **Broader Implications**: This analysis is relevant to understanding race dynamics and can provide actionable insights for teams, fans, and analysts interested in optimizing race outcomes.
 
 By focusing on the interplay between pit stop timing and race positions, this question delves into the tactical heart of Formula 1, blending data-driven analysis with storytelling about race-day decision-making.
+
+Plot: A possible heatmap where the x-axis represents different races and the y-axis shows top teams, with cell colors representing average pit stop times.
 
 ## Weekly Plan of Attack
 
