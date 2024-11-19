@@ -49,6 +49,28 @@ f1dataR is an R library, not a dataset. It provides programmatic access to Formu
 ## Dataset
 
 ```{r}
+#| label: dimensions
+#| echo: false
+#| message: false
+#| warning: false
+#| error: false
+
+all_functions <- ls("package:f1dataR")
+load_functions <- all_functions[startsWith(all_functions, "load")]
+print("Dimensions:")
+for (i in load_functions) {
+  fn <- get(i, envir = asNamespace("f1dataR"))
+  try({
+    result <- fn()  # Call the function (adjust arguments if necessary)
+    if (is.data.frame(result)) {
+      print(i)  # Print the function name
+      print(dim(result))  # Print dimensions if result is a data frame
+    }
+  }, silent = TRUE)  # Handle errors gracefully
+}
+```
+
+```{r}
 #| label: load-dataset
 #| message: false
 #| warning: false
@@ -181,60 +203,41 @@ Plot: A possible heatmap where the x-axis represents different races and the y-a
 
 ## Weekly Plan of Attack
 
-+---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
-| Task Name                                   | Status      | Assignee  | Due    | Priority | Summary                                                                                                                               |
-+=============================================+=============+===========+========+==========+=======================================================================================================================================+
-| Data Acquisition & Data Cleaning            | Started     | Yogeshwar | Week 1 | High     | Download and explore the FastF1 dataset to understand structure and variables.                                                        |
-+---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
-| Feature Engineering                         | Not Started | Sanjeev   | Week 2 | High     | Develop additional features like lap averages, sector times, and pit stop efficiency.                                                 |
-+---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
-| Exploratory Analysis - Question 1,          | Not Started | Sanjeev,  | Week 3 | High     | Answer Questions and Generate visualizations and summaries to identify trends.                                                        |
-|                                             |             |           |        |          |                                                                                                                                       |
-| Question 2,                                 |             | Yogeshwar | Week 4        |          |                                                                                                                                       |
-|                                             |             |           |        |          |                                                                                                                                       |
-| Question 3,                                 |             | Sahana    |Week 5        |          |                                                                                                                                       |
-|                                             |             |           |        |          |                                                                                                                                       |
-| Question 4                                  |             | Sindhu    |Week 6        |          |                                                                                                                                       |
-+---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
-| Report Writing & Final Project Presentation | Not Started | Sanjeev,  | Week 7 | High     | Compile findings, methods, and conclusions in a formal report. Prepare presentation slides and summary for final project presentation |
-|                                             |             |           |        |          |                                                                                                                                       |
-|                                             |             | Yogeshwar |        |          |                                                                                                                                       |
-|                                             |             |           |        |          |                                                                                                                                       |
-|                                             |             | Sahana    |        |          |                                                                                                                                       |
-|                                             |             |           |        |          |                                                                                                                                       |
-|                                             |             | Sindhu    |        |          |                                                                                                                                       |
-+---------------------------------------------+-------------+-----------+--------+----------+---------------------------------------------------------------------------------------------------------------------------------------+
+| **Week** | **Dates** | **Task Name** | **Status** | **Priority** | **Summary** | **Assignee** |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| **Week 1** | Oct 28 - Nov 03 | Pick Project Focus | Completed | High | Identify the specific focus of the project (e.g., analyzing driver and team performance). | Yogeshwar |
+| **Week 2** | Nov 04 - Nov 10 | Develop Proposal & Set Up Repo | Completed | High | Write the initial proposal draft, create the repository structure, and add README.md files to folders. | Savjeev and Yogeshwars |
+| **Week 3** | Nov 11 - Nov 17 | Finalize Proposal & Feature Engineering | In Progress | High | Refine the proposal based on initial feedback and Develop additional features like lap averages, sector times, and pit stop efficiency. | Sindhu and Sahana |
+| **Week 4** | Nov 18 - Nov 24 | Work on Analysis & Answer questions 1 and 2 | Not Started | High | Begin working on the project (data cleaning, exploratory analysis), | Sanjeev and Sahana |
+| **Week 5** | Nov 25 - Dec 01 | Work on Analysis & Answer questions 3 and 4 | Not Started | High | Implementand continue analysis | Sindhu and Yogeshwar |
+| **Week 6** | Dec 02 - Dec 08 | Prepare Poster for Peer Review | Not Started | High | Create a draft of the presentation poster, including visualizations and findings for feedback. | Sahana , Yogeshwar, Sindhu ,Sanjeev |
+| **Week 7** | Dec 09 - Dec 15 | Present Project & Submit Final Report | Not Started | High | Finalize and present the project; submit the complete write-up with all deliverables (code, analysis, etc.). | Sahana , Yogeshwar, Sindhu ,Sanjeev |
 
 ## Project Structure
 
-```{r}
-project-2-pixels-patterns/
-├── data/
-│   ├── README.md               # Description of data sources and formats
-│   ├── raw/                    # Raw data files fetched from `f1dataR`
-│   ├── processed/              # Cleaned and prepared data files
-├── styles/
-│   ├── custom_styles.scss      # Custom styling for the project
-│   ├── styles.css              # Compiled CSS file
-│   └── README.md               # Documentation for styling
-├── documents/
-│   ├── proposal.qmd            # Initial project proposal
-│   ├── methodology.md          # Detailed project methodology
-│   ├── showcase_poster.pptx    # Presentation poster
-│   └── README.md               # Description of documents
-├── presentation_images/
-│   ├── slide1.png              # Images for the presentation
-│   ├── slide2.png              # Additional presentation images
-│   └── README.md               # Description of presentation images
-├── .gitignore                  # Files and folders to be ignored by git
-├── README.md                   # Overview of the project and repository
-├── _quarto.yml                 # Configuration for Quarto project
-├── index.qmd                   # Main Quarto project page
-├── presentation.qmd            # Quarto-based presentation
-└── analysis/
-    ├── data_wrangling.R        # Scripts for data processing
-    ├── visualization.R         # Scripts for creating visualizations
-    ├── analysis.R              # Analytical calculations
-    └── README.md               # Description of analysis scripts
+```         
+Project Directory
 
+├── .git/               # Git version control metadata
+├── .quarto/            # Quarto-specific configuration and cache files
+ settings
+├── _freeze/            # Temporary folder for frozen outputs during rendering
+├── _site/              # Generated site files created by Quarto rendering
+│   ├── site_libs/      # Dependencies and libraries for the rendered site
+│   ├── about.html      # Rendered HTML page for the "About" section
+│   ├── index.html      # Rendered HTML page for the main landing page
+│   ├── proposal.html   # Rendered HTML page for the project proposal
+│   ├── search.json     # JSON file enabling search functionality for the site
+│   └── styles.css      # Cascading Style Sheet (CSS) file for styling the rendered site
+├── README_files/       # Assets or additional files linked to README.md
+├── .gitignore          # Specifies files and folders to be ignored by Git
+├── _quarto.yml         # Quarto project configuration file
+├── project-02          # RStudio project file
+├── README              # Basic text file providing project overview
+├── README.md           # Markdown version of the README file
+├── styles/             # CSS file for styling Quarto outputs
+│   └── styles.css      # Custom stylesheet
+├── about.qmd           # Contains project details and objectives
+├── index.qmd           # Main entry point for the Quarto site
+└── proposal.qmd        # Draft and finalized project proposal
 ```
