@@ -1,5 +1,299 @@
 ---
-title: "Formula 1 - Analyze to Action"
+title: "Project Writeup"
+subtitle: "Formula 1 - Racing through Data"
+author: 
+  - name: "Pixels and Patterns"
+    affiliations:
+      - name: "College of Information Science, University of Arizona"
+      
+format:
+  html:
+    code-tools: true
+    code-overflow: wrap
+    code-line-numbers: true
+    embed-resources: true
+editor: visual
+code-annotations: hover
+execute:
+  warning: false
 ---
 
-Work in Progress......
+## Introduction
+
+This dataset contains match-level data from the F1 Racing Championship season, covering various fixtures between teams across different dates. For each match, the dataset records essential information, including the home and away teams, the goals scored by each team (both full-time and half-time), and the final result (win, loss, or draw). Additional metrics provide insights into team performances, such as the number of shots on target, fouls committed, and corner kicks. Furthermore, the dataset tracks disciplinary actions with columns for yellow and red cards, offering a comprehensive view of each game's flow and outcome.
+
+The data can be utilized to explore various aspects of soccer performance, team strategies, and match outcomes. By examining trends in team behavior—such as shooting accuracy or foul patterns—analysts can gain insights into factors that influence match results. This makes the dataset valuable for statistical analysis and predictions related to soccer matches.
+
+## Question 4: How does pitstop time affect the race outcome:
+
+**Introduction** - This project leverages the “f1dataR” library to analyze historical Formula 1 data for the seasons 2021 to 2023. The primary goal is to identify annual champions, examine the circuits they competed on, and evaluate their average pitstop times across races. By visualizing these metrics, the project aims to uncover patterns and insights into the performance of championship-winning drivers and the impact of specific circuits on pitstop durations.
+
+**Approach** -
+
+**Data Collection**:
+
+-   The project utilized the “f1dataR” library to extract data on driver standings, circuit schedules, and pitstop details for the seasons 2021, 2022, and 2023.
+
+-   Standings data were merged with driver details to identify the champion of each season based on final rankings.
+
+1.  **Data Processing**:
+
+    -   Circuit schedules for each season were extracted, including the names of circuits and corresponding rounds.
+
+    -   Pitstop data for each champion across all circuits were retrieved. The average pitstop duration was calculated for each circuit where data was available.
+
+2.  **Visualization**:
+
+    -   A bar chart was created to compare the average pitstop times of champions across different circuits over the three seasons. Distinct colors were assigned to circuits to enhance clarity and visual appeal.
+
+    -   The visualization incorporated facets for each year, allowing year-wise comparisons while maintaining a focus on circuit-level details.
+
+**Analysis** -
+
+```{r champion_pitstop_time, warning=FALSE, error=FALSE, message=FALSE}
+library(f1dataR)
+library(ggplot2)
+
+years <- 2021:2023
+champions <- data.frame(Year = integer(), DriverId = character(), Name = character())
+
+for (year in years) {
+  standings <- load_standings(season = year, round = "last", type = "driver")
+  drivers <- load_drivers(season = year)
+  drivers$driverName <- paste(drivers$given_name, drivers$family_name)
+  standings_with_names <- merge(
+    standings,
+    drivers[, c("driver_id", "driverName")],
+    by = "driver_id",
+    all.x = TRUE
+  )
+  champion <- standings_with_names[standings_with_names$position == 1, c("driver_id", "driverName")]
+  champions <- rbind(champions, data.frame(Year = year, DriverId = champion$driver_id, driverName = champion$driverName))
+}
+
+circuits <- data.frame(Year = integer(), Circuit = character(), Round = integer())
+
+for (year in years) {
+  schedule <- load_schedule(season = year)
+  circuits <- rbind(circuits, data.frame(Year = year, Circuit = schedule$circuit_name, Round = schedule$round))
+}
+
+champion_pitstops <- data.frame(Year = integer(), Circuit = character(), AvgPitstop = numeric())
+
+for (year in years) {
+  champion_id <- champions[champions$Year == year, "DriverId"]
+  year_circuits <- circuits[circuits$Year == year, ]
+  
+  for (round in year_circuits$Round) {
+    pitstops <- try(load_pitstops(season = year, round = round), silent = TRUE)
+    if (!inherits(pitstops, "try-error") && !is.null(pitstops)) {
+      champ_pitstops <- pitstops[pitstops$driver_id == champion_id, ]
+      avg_time <- mean(as.numeric(champ_pitstops$duration), na.rm = TRUE)
+      circuit <- year_circuits[year_circuits$Round == round, "Circuit"]
+      champion_pitstops <- rbind(champion_pitstops, data.frame(Year = year, Circuit = circuit, AvgPitstop = avg_time))
+    }
+  }
+}
+
+circuit_colors <- c(
+  "Bahrain International Circuit" = "#3cb44b",
+  "Autodromo Enzo e Dino Ferrari" = "#ffe119",
+  "Autódromo Internacional do Algarve" = "#4363d8",
+  "Circuit de Barcelona-Catalunya" = "#f58231",
+  "Circuit de Monaco" = "#911eb4",
+  "Baku City Circuit" = "#42d4f4",
+  "Circuit Paul Ricard" = "#f032e6",
+  "Red Bull Ring" = "#e6194B",
+  "Silverstone Circuit" = "#bfef45",
+  "Hungaroring" = "#fabed4",
+  "Circuit de Spa-Francorchamps" = "#469990",
+  "Circuit Park Zandvoort" = "#dcbeff",
+  "Autodromo Nazionale di Monza" = "#9A6324",
+  "Sochi Autodrom" = "#fffac8",
+  "Istanbul Park" = "#800000",
+  "Circuit of the Americas" = "#aaffc3",
+  "Autódromo Hermanos Rodríguez" = "#808000",
+  "Autódromo José Carlos Pace" = "#ffd8b1",
+  "Losail International Circuit" = "#000075",
+  "Jeddah Corniche Circuit" = "#a9a9a9",
+  "Yas Marina Circuit" = "#DA9100",
+  "Albert Park Grand Prix Circuit" = "gold",
+  "Miami International Autodrome" = "#87A96B",
+  "Circuit Gilles Villeneuve" = "lightgreen",
+  "Marina Bay Street Circuit" = "#9467bd",
+  "Suzuka Circuit" = "#8c564b",
+  "Las Vegas Strip Street Circuit" = "#e377c2"
+)
+
+ggplot(champion_pitstops, aes(x = Circuit, y = AvgPitstop, fill = Circuit)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.8) +scale_fill_manual(values = circuit_colors) +
+  labs(
+    title = "Pitstop Times of Formula 1 Champions Across Circuits (2021-2023)",
+    subtitle = "Analysis of pitstop times across circuits for the last 3 years",
+    caption = "Data Source: f1dataR",
+    x = "Circuit",
+    y = "Pitstop Time (seconds)"
+  ) +
+  scale_y_continuous(breaks = seq(0, 40, 5))+
+  facet_wrap(~ Year, scales = "free_x") +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 11, hjust = 0.5),
+    plot.subtitle = element_text(size = 8, hjust = 0.5, color = "gray40"),
+    plot.caption = element_text(size = 6, hjust = 1, face = "italic"),
+    axis.text.y = element_text(hjust = 1, size = 9),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_text(face = "bold", size = 10),
+    strip.text = element_text(face = "bold", size = 12, color = "black"),
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 7),
+    legend.text = element_text(size = 6),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = "gray90"),
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    legend.key.size = unit(4, 'mm')
+  )
+```
+
+**Discussion** -
+
+**Champion Performance**:
+
+-   The champions for the seasons 2021, 2022, and 2023 were identified, showing consistency in top driver performance across the years.
+
+-   The integration of driver standings and detailed circuit data enabled a comprehensive overview of each champion's season.
+
+1.  **Circuit-Specific Insights**:
+
+    -   Variability in pitstop times across circuits suggests that certain tracks pose unique challenges or opportunities for efficient pitstops.
+
+    -   Circuits like Monaco and Spa-Francorchamps, known for their technical demands, exhibited distinct average pitstop durations for champions.
+
+2.  **Implications of Findings**:
+
+    -   The analysis underscores the importance of pitstop strategy as a critical component of championship success. Teams may tailor pitstop strategies to account for circuit-specific characteristics.
+
+    -   Visualizing data over multiple seasons provides a historical context that can inform future predictions and performance evaluations.
+
+**Introduction** - The aim is to visualize driver positions over race laps, evaluate the impact of pitstop durations on race outcomes, and identify patterns that influence race strategy. The Abu Dhabi Grand Prix serves as a focal point for this analysis, providing an opportunity to explore how pitstops and race dynamics influence driver rankings.
+
+**Approach** -
+
+**Data Collection**:
+
+-   Standings and telemetry data for the 2021 season were loaded to contextualize driver performance.
+
+-   For the 2023 season, race telemetry, lap data, and pitstop information were extracted, with a specific focus on the Abu Dhabi Grand Prix.
+
+-   Driver mappings were utilized to standardize data and enhance interpretability.
+
+1.  **Data Processing**:
+
+    -   Data for laps and pitstops were merged, allowing for a consolidated view of driver positions and pitstop durations.
+
+    -   Non-numeric fields, such as pitstop durations, were converted to appropriate numeric types to facilitate analysis.
+
+    -   Missing data points, such as laps without pitstops, were handled by assigning default values to ensure continuity in visualization.
+
+2.  **Visualization**:
+
+    -   A line plot was created to visualize driver positions over the course of the race.
+
+    -   Pitstop durations were represented as point sizes on the plot, highlighting their timing and impact on race positions.
+
+    -   Custom color mapping was applied to distinguish drivers effectively, while a minimal theme enhanced clarity and focus on the data.**Analysis** -
+
+```{r position_vs_pitstop, warning=FALSE,error=FALSE,message=FALSE}
+library(dplyr)
+chp <- load_standings(season = 2021, round = "last", type = "driver")
+telem <- load_driver_telemetry(season = 2023, round = "Bahrain", session = "R", driver = "HAM", laps = "all")
+res <- load_results(season = 2023, round = "last")
+
+season <- 2023
+round <- "last"
+
+lap_data <- load_session_laps(season = season, round = round, session = "R")
+
+pitstop_data <- load_pitstops(season = season, round = round)
+pitstop_data$duration <- as.numeric(pitstop_data$duration)
+pitstop_data$lap <- as.numeric(pitstop_data$lap)
+
+driver_mapping <- load_drivers(season = season)[, c("driver_id", "code")]
+colnames(driver_mapping)[colnames(driver_mapping) == "code"] <- "driver"
+pitstop_data <- merge(pitstop_data, driver_mapping, by = "driver_id", all.x = TRUE)
+
+combined_data <- merge(
+  lap_data,
+  pitstop_data[, c("driver", "lap", "duration")],
+  by.x = c("driver", "lap_number"),
+  by.y = c("driver", "lap"),
+  all.x = TRUE
+)
+combined_data$duration[is.na(combined_data$duration)] <- 0
+
+driver_colors <- c(
+  "ALB" = "#1f77b4", "ALO" = "#ff7f0e", "BOT" = "#2ca02c", "GAS" = "#d62728",
+  "HAM" = "#9467bd", "HUL" = "#8c564b", "LEC" = "#e377c2", "MAG" = "#7f7f7f",
+  "NOR" = "#bcbd22", "OCO" = "#17becf", "PER" = "#ff9896", "PIA" = "#98df8a",
+  "RIC" = "#ffbb78", "RUS" = "#c5b0d5", "SAI" = "#c49c94", "SAR" = "#f7b6d2",
+  "STR" = "#c7c7c7", "TSU" = "#dbdb8d", "VER" = "#9edae5", "ZHO" = "#aec7e8"
+)
+
+ggplot(combined_data, aes(x = lap_number, y = position, color = as.factor(driver))) +
+  geom_line(size = 1) +
+  scale_colour_manual(values = driver_colors) +
+  geom_point(data = subset(combined_data, duration > 0), aes(size = duration), shape = 21, fill = "red") +
+  scale_y_reverse(breaks = 1:20) +
+  scale_x_continuous(breaks = seq(0, 60, 5)) +
+  labs(
+    title = "Driver Positions and Pitstop Times in Abu Dhabi Grand Prix",
+    subtitle = "Visualizing race progress and pitstop impacts for all drivers",
+    x = "Lap Number (Multiples of 5)",
+    y = "Race Position (1st = Top)",
+    color = "Driver",
+    size = "Pitstop Duration (seconds)",
+    caption = "Data source: f1dataR"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 10, hjust = 0.5),
+    plot.subtitle = element_text(size = 8, hjust = 0.5, color = "darkgray"),
+    plot.caption = element_text(size = 6, hjust = 1, face = "italic"),
+    axis.title.x = element_text(face = "bold", size = 8),
+    axis.title.y = element_text(face = "bold", size = 8),
+    axis.text = element_text(size = 7),
+    axis.line.x = element_line(color = "black", size = 1),
+    axis.line.y = element_line(color = "black", size = 1),
+    legend.title = element_text(face = "bold", size = 8),
+    legend.text = element_text(size = 6),
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    legend.direction = "vertical",
+    legend.position = "right",
+    legend.box = "horizontal",
+    legend.title.align = 0,
+    legend.key.size = unit(5, 'mm')
+  )
+```
+
+**Discussion** -
+
+**Driver Performance Trends**:
+
+-   The visualization highlights fluctuations in driver positions throughout the race, illustrating how pitstops and race incidents influence rankings.
+
+-   Consistent performance by top drivers, such as Lewis Hamilton (HAM), underscores the importance of maintaining competitive pace and minimizing errors.
+
+1.  **Pitstop Analysis**:
+
+    -   The timing and duration of pitstops emerged as critical factors in shaping race outcomes. Drivers with shorter pitstops generally regained track positions more efficiently.
+
+    -   Variability in pitstop durations across drivers points to differences in team strategy and execution.
+
+2.  **Implications for Strategy**:
+
+    -   The combined analysis of lap data and pitstops provides a detailed view of race strategies. Teams can use similar visualizations to refine pitstop timing and assess the impact of their decisions on race outcomes.
+
+    -   Understanding driver trends over race laps aids in predicting potential overtakes and defending positions effectively.

@@ -1,6 +1,6 @@
 ---
 title: "Project Proposal"  
-subtitle: "Formula 1 - Analyze to Action"
+subtitle: "Formula 1 - Racing through Data"
 author: 
   - name: "Pixels and Patterns"
     affiliations:
@@ -207,11 +207,11 @@ Plot: A possible heatmap where the x-axis represents different races and the y-a
 |-----------|-----------|-----------|-----------|-----------|-----------|-----------|
 | **Week 1** | Oct 28 - Nov 03 | Pick Project Focus | Completed | High | Identify the specific focus of the project (e.g., analyzing driver and team performance). | Yogeshwar |
 | **Week 2** | Nov 04 - Nov 10 | Develop Proposal & Set Up Repo | Completed | High | Write the initial proposal draft, create the repository structure, and add README.md files to folders. | Savjeev and Yogeshwars |
-| **Week 3** | Nov 11 - Nov 17 | Finalize Proposal & Feature Engineering | In Progress | High | Refine the proposal based on initial feedback and Develop additional features like lap averages, sector times, and pit stop efficiency. | Sindhu and Sahana |
-| **Week 4** | Nov 18 - Nov 24 | Work on Analysis & Answer questions 1 and 2 | Not Started | High | Begin working on the project (data cleaning, exploratory analysis), | Sanjeev and Sahana |
-| **Week 5** | Nov 25 - Dec 01 | Work on Analysis & Answer questions 3 and 4 | Not Started | High | Implementand continue analysis | Sindhu and Yogeshwar |
-| **Week 6** | Dec 02 - Dec 08 | Prepare Poster for Peer Review | Not Started | High | Create a draft of the presentation poster, including visualizations and findings for feedback. | Sahana , Yogeshwar, Sindhu ,Sanjeev |
-| **Week 7** | Dec 09 - Dec 15 | Present Project & Submit Final Report | Not Started | High | Finalize and present the project; submit the complete write-up with all deliverables (code, analysis, etc.). | Sahana , Yogeshwar, Sindhu ,Sanjeev |
+| **Week 3** | Nov 11 - Nov 17 | Finalize Proposal & Feature Engineering | Completed | High | Refine the proposal based on initial feedback and Develop additional features like lap averages, sector times, and pit stop efficiency. | Sindhu and Sahana |
+| **Week 4** | Nov 18 - Nov 24 | Work on Analysis & Answer questions 1 and 2 | Completed | High | Begin working on the project (data cleaning, exploratory analysis), | Sanjeev and Sahana |
+| **Week 5** | Nov 25 - Dec 01 | Work on Analysis & Answer questions 3 and 4 | Completed | High | Implementand continue analysis | Sindhu and Yogeshwar |
+| **Week 6** | Dec 02 - Dec 08 | Prepare Poster for Peer Review | Completed | High | Create a draft of the presentation poster, including visualizations and findings for feedback. | Sahana , Yogeshwar, Sindhu ,Sanjeev |
+| **Week 7** | Dec 09 - Dec 15 | Present Project & Submit Final Report | Completed | High | Finalize and present the project; submit the complete write-up with all deliverables (code, analysis, etc.). | Sahana , Yogeshwar, Sindhu ,Sanjeev |
 
 ## Project Structure
 

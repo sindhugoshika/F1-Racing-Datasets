@@ -34,7 +34,7 @@ This project leverages the `f1dataR` package to conduct an in-depth analysis of 
 
 -   **Package**: `f1dataR` for accessing and analyzing Formula 1 data
 
--   **Visualization Tools**: `ggplot2`, `plotly` for creating plots and dashboards
+-   **Visualization Tools**: `ggplot2` for creating plots and dashboards
 
 -   **Version Control**: GitHub for managing project files and collaboration
 
@@ -50,4 +50,4 @@ Formula 1 combines engineering excellence, driver skill, and strategic decisions
 
 -   Sindhu Goshika
 
--   Sahana
+-   Sahana Santhosh
