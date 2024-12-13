@@ -24,6 +24,145 @@ This dataset contains match-level data from the F1 Racing Championship season, c
 
 The data can be utilized to explore various aspects of soccer performance, team strategies, and match outcomes. By examining trends in team behavior—such as shooting accuracy or foul patterns—analysts can gain insights into factors that influence match results. This makes the dataset valuable for statistical analysis and predictions related to soccer matches.
 
+## Question 1: How can we visualize the race winners on the Circuit de Monaco over the past four years (2019-2023) in a clear and insightful way using R?:
+
+**Introduction** - This project leverages the “f1dataR” library to analyze historical Formula 1 data for the seasons 2021 to 2023. The primary goal is to explore the historical performance of drivers and teams on one of the most iconic circuits in Formula 1, providing a focused analysis of winners and trends at the Circuit de Monaco.
+
+.
+
+**Approach** -
+
+The goal of the project was to visually represent the performance of Monaco Grand Prix winners from 2019 to 2023 by mapping their telemetry data and highlighting RPM variations across the circuit.
+
+**Data Collection**:
+
+-   The project utilized the “f1dataR” package to extract telemetry data for each year's Monaco Grand Prix winner, covering 2019, 2021, 2022, and 2023 (the 2020 Monaco GP was canceled).
+
+-   The winners' details, including driver and constructor names, were manually identified from F1 standings for each year.
+
+-   Telemetry data for each driver was extracted, focusing on x, y coordinates (track map) and RPM (engine speed).
+
+1.  **Data Processing**:
+
+    -   Telemetry data was cleaned by filtering out missing or infinite values to ensure accurate visual representation.
+
+    -   Team-specific color gradients were assigned to each winner based on their constructor (e.g., Mercedes for Hamilton, Red Bull for Verstappen and Perez).
+
+    -    A label denoting the team name was added to each plot for easy identification of constructors.
+
+2.  **Visualization**:
+
+    -   Track maps were created for each driver, with RPM represented as a color gradient along the circuit path.
+
+    -   Each driver's telemetry visualization was plotted in a grid using facets, allowing side-by-side comparisons of winners over the years.
+
+    -    The final visualization included a title and year-specific annotations to provide context and insights into the performance of drivers across the Monaco Grand Prix.
+
+**Analysis** -
+
+```{r winners_monaco, warning=FALSE, error=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+
+# Define driver colors and team names
+driver_colors <- list(
+  hamilton = c("#00A19C", "#C6C6C6"),  # Mercedes colors
+  max_verstappen = c("#121F45", "#FFC906"),  # Red Bull colors
+  perez = c("#121F45", "#CC1E4A")  # Red Bull colors for Perez
+)
+
+# Define the winners and years
+monaco_winners_df <- data.frame(
+  Year = c(2019, 2021, 2022, 2023),
+  Winner = c("hamilton", "max_verstappen", "perez", "max_verstappen"),
+  Constructor = c("mercedes", "red_bull", "red_bull", "red_bull"),
+  stringsAsFactors = FALSE
+)
+
+# Initialize an empty list to store telemetry data for each driver
+track_data <- list()
+
+# Load telemetry data for each driver from 2019 to 2023
+for (i in 1:nrow(monaco_winners_df)) {
+  winner <- monaco_winners_df$Winner[i]
+  year <- monaco_winners_df$Year[i]
+  driver <- ifelse(winner == "hamilton", "HAM", 
+                   ifelse(winner == "max_verstappen", "VER", "PER"))
+  
+  # Load telemetry for the Monaco Grand Prix
+  telem <- load_driver_telemetry(season = year, driver = driver, round = "Monaco Grand Prix")
+  
+  # Clean telemetry data
+  telem_clean <- telem %>%
+    filter(!is.na(x), !is.na(y), !is.na(rpm)) %>%
+    filter(is.finite(x), is.finite(y), is.finite(rpm))
+  
+  # Store the cleaned telemetry data
+  track_data[[paste(driver, year, sep = "_")]] <- telem_clean
+}
+
+# Create track map plots for each driver using telemetry data and assigned colors
+track_plots <- list()
+
+# Generate track maps for each driver and year
+for (i in 1:nrow(monaco_winners_df)) {
+  winner <- monaco_winners_df$Winner[i]
+  year <- monaco_winners_df$Year[i]
+  driver <- ifelse(winner == "hamilton", "HAM", 
+                   ifelse(winner == "max_verstappen", "VER", "PER"))
+  
+  # Get the corresponding color for the driver
+  color_low <- driver_colors[[winner]][1]
+  color_high <- driver_colors[[winner]][2]
+  team_name <- toupper(monaco_winners_df$Constructor[i])  # Get the team name
+  
+  # Generate the plot if the telemetry data exists
+  if (paste(driver, year, sep = "_") %in% names(track_data)) {
+    telem_clean <- track_data[[paste(driver, year, sep = "_")]]
+    
+    track_plots[[paste(driver, year, sep = "_")]] <- ggplot(telem_clean, aes(x = x, y = y)) +
+      geom_path(aes(color = rpm), size = 1.5) +  # Color the path based on RPM
+      scale_color_gradient(low = color_low, high = color_high) +  # Team colors for RPM
+      labs(
+        title = paste("Monaco GP Track Map - RPM for", toupper(winner), year),
+        subtitle = paste("Telemetry from", toupper(winner), "in Monaco GP", year),
+        x = NULL,
+        y = NULL
+      ) +
+      theme_minimal() +
+      theme(
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        legend.title = element_text(size = 12),  # Customize legend text
+        legend.position = "right"
+      ) +
+      guides(color = guide_colorbar(title = "RPM")) +  # Add RPM color legend
+      annotate("text", x = Inf, y = -Inf, label = team_name, 
+               hjust = 1.2, vjust = -1.5, size = 4, color = "black", fontface = "bold")  # Add team label at bottom right
+  }
+}
+
+# Create the title grob
+title <- grid::textGrob("Winners of Monaco GP (2019-2023)", gp = grid::gpar(fontsize = 20, fontface = "bold"))
+
+# Display the track maps in a 2x2 grid with a title on top
+plot_grid <- gridExtra::grid.arrange(
+  title,
+  gridExtra::arrangeGrob(
+    track_plots[["HAM_2019"]], track_plots[["VER_2021"]],
+    track_plots[["PER_2022"]], track_plots[["VER_2023"]],
+    nrow = 2, ncol = 2
+  ),
+  nrow = 2, heights = c(0.1, 1)
+)
+
+ggsave("monaco_gp_winners_2019_2023.png", plot = plot_grid, width = 12, height = 10, dpi = 300)
+
+```
+
+
 ## Question 4: How does pitstop time affect the race outcome:
 
 **Introduction** - This project leverages the “f1dataR” library to analyze historical Formula 1 data for the seasons 2021 to 2023. The primary goal is to identify annual champions, examine the circuits they competed on, and evaluate their average pitstop times across races. By visualizing these metrics, the project aims to uncover patterns and insights into the performance of championship-winning drivers and the impact of specific circuits on pitstop durations.
