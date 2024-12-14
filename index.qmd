@@ -48,7 +48,7 @@ The goal of the project was to visually represent the performance of Monaco Gran
 
     -   Team-specific color gradients were assigned to each winner based on their constructor (e.g., Mercedes for Hamilton, Red Bull for Verstappen and Perez).
 
-    -    A label denoting the team name was added to each plot for easy identification of constructors.
+    -   A label denoting the team name was added to each plot for easy identification of constructors.
 
 2.  **Visualization**:
 
@@ -56,7 +56,7 @@ The goal of the project was to visually represent the performance of Monaco Gran
 
     -   Each driver's telemetry visualization was plotted in a grid using facets, allowing side-by-side comparisons of winners over the years.
 
-    -    The final visualization included a title and year-specific annotations to provide context and insights into the performance of drivers across the Monaco Grand Prix.
+    -   The final visualization included a title and year-specific annotations to provide context and insights into the performance of drivers across the Monaco Grand Prix.
 
 **Analysis** -
 
@@ -161,9 +161,10 @@ plot_grid <- gridExtra::grid.arrange(
 ggsave("monaco_gp_winners_2019_2023.png", plot = plot_grid, width = 12, height = 10, dpi = 300)
 
 ```
+
 ## Question 2
 
-2. How can a driver's performance on their fastest lap be analyzed using speed and throttle data?
+2.  How can a driver's performance on their fastest lap be analyzed using speed and throttle data?
 
 **Introduction**
 
@@ -173,13 +174,9 @@ This analysis focuses on leveraging telemetry data to evaluate the performance o
 
 ## Data Collection:
 
-The telemetry data for Max Verstappen (VER) during the 2023 season, Round 1, was retrieved using the f1dataR package.
-The fastest lap for the driver was identified using the load_laps function, and its corresponding telemetry was extracted with load_driver_telemetry.
-Data Processing:
+The telemetry data for Max Verstappen (VER) during the 2023 season, Round 1, was retrieved using the f1dataR package. The fastest lap for the driver was identified using the load_laps function, and its corresponding telemetry was extracted with load_driver_telemetry. Data Processing:
 
-The fastest lap was filtered by finding the lap with the minimum time_sec value.
-Telemetry data for the specific lap was processed to include speed, throttle, and distance metrics.
-Visualization:
+The fastest lap was filtered by finding the lap with the minimum time_sec value. Telemetry data for the specific lap was processed to include speed, throttle, and distance metrics. Visualization:
 
 A line plot was created to visualize speed across the lap distance, with throttle usage represented as a gradient. This allowed us to see the relationship between acceleration, deceleration, and speed consistency across different track sections.
 
@@ -223,6 +220,147 @@ ggplot(telemetry, aes(x = distance, y = speed)) +
   theme(plot.title = element_text(face = "bold", size = 14))
 ```
 
+## Question 3: How do each F1 team’s lap times improve over the course of a race, and how do these improvements compare across different circuit types?
+
+### Introduction
+
+This analysis explores how F1 teams’ lap times improve during a race and compares their performance across different types of circuits, focusing on the 2022 and 2023 seasons.
+
+### Data Collection
+
+Lap data, race schedules, and circuit information were gathered using the `f1dataR` package.
+
+Circuits were categorized as "Technical," "High-Speed," or "Other."
+
+### Data Preprocessing
+
+Lap times were merged with team and circuit data.
+
+Only the top 7 circuits were selected for analysis, and lap times were converted to numeric values.
+
+### Data Visualization
+
+A Scatter plot was created to show average lap times of teams across circuits.
+
+Each circuit is displayed in a separate panel, with teams color-coded for clarity.
+
+Titles, labels, and themes were customized to ensure readability.
+
+### Data Analysis
+
+```{r}
+# Load necessary libraries
+library(f1dataR)
+library(dplyr)
+library(ggplot2)
+
+# Define the seasons to include
+seasons <- c(2022, 2023)
+
+# Load the schedule and circuits for the season
+race_schedule <- load_schedule(season)
+circuits_data <- load_circuits()
+
+# Define circuit types (add more classifications as needed)
+circuit_types <- circuits_data %>%
+  mutate(
+    type = case_when(
+      circuit_name %in% c("Circuit de Monaco", "Baku City Circuit") ~ "Technical Circuit",
+      circuit_name %in% c("Silverstone Circuit", "Red Bull Ring") ~ "High-Speed Circuit",
+      TRUE ~ "Other"
+    )
+  )
+
+# Ensure `laps_data$season` matches the type of `race_schedule$season`
+laps_data <- laps_data %>%
+  mutate(season = as.character(season))  # Convert laps_data$season to character
+
+# Initialize an empty list to store lap data across seasons
+laps_list <- list()
+
+# Loop through each season and each race to load lap data
+for (season in seasons) {
+  # Load the schedule for the current season
+  race_schedule <- load_schedule(season)
+  
+  # Loop through each race in the schedule
+  for (i in seq_along(race_schedule$round)) {
+    round_num <- as.integer(race_schedule$round[i])
+    
+    # Load lap data for the race
+    laps <- load_laps(season = season, round = round_num)
+    
+    # Load results data to get constructor (team) information
+    results <- load_results(season = season, round = round_num)
+    
+    # Merge lap data with results data to include the constructor (team)
+    laps_with_team <- laps %>%
+      left_join(results %>% select(driver_id, constructor_id), by = "driver_id") %>%
+      rename(team = constructor_id) %>%
+      mutate(round = race_schedule$round[i], season = as.character(season))  # Add round and season
+    
+    # Append to the list
+    laps_list[[length(laps_list) + 1]] <- laps_with_team
+  }
+}
+
+# Combine all races' lap data into one data frame
+laps_data <- bind_rows(laps_list)
+
+```
+
+```{r}
+# Filter data for the top 7 circuits
+top_circuits_data <- laps_data %>%
+  inner_join(race_schedule, by = c("season", "round")) %>%
+  filter(circuit_name %in% top_7_circuits) %>%
+  mutate(lapTime = as.numeric(time_sec))  # Convert lap time to numeric
+
+```
+
+```{r}
+
+ggplot(heatmap_data, aes(x = team, y = avg_lap_time, group = team, color = team)) +
+  geom_line(size = 1.2, alpha = 0.9) +  # Thicker and darker lines
+  geom_point(size = 4, alpha = 1) +  # Fully opaque and darker points
+  scale_color_manual(
+    values = c(
+      "mercedes" = "#00D2BE", 
+      "ferrari" = "#DC0000", 
+      "red bull" = "#0600EF", 
+      "alpine" = "#0090FF", 
+      "haas" = "#F62039", 
+      "aston martin" = "#006F62", 
+      "alphatauri" = "#2B4562", 
+      "mclaren" = "#FF8700", 
+      "alfa" = "#900000", 
+      "williams" = "#005AFF"
+    ),
+    name = "Team"
+  ) +
+  facet_wrap(~ circuit_name, scales = "fixed", labeller = label_wrap_gen()) +  # Ensure consistent scaling
+  labs(
+    title = "Team Performance Across Top 7 Famous Circuits",
+    subtitle = "Faceted plots showing lap time trends for each circuit",
+    x = "Team",
+    y = "Average Lap Time (seconds)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    axis.text.y = element_text(size = 10),
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 12, face = "italic"),
+    legend.position = "right",  # Place legend on the right
+    panel.spacing = unit(1, "lines"),  # Add space between panels
+    strip.text = element_text(size = 10),  # Adjust facet label size
+    panel.grid.major.y = element_line(color = "grey", linetype = "dashed")  # Enhance y-axis visibility
+  )
+
+# Save the plot
+#ggsave("team_performance_plot.png", plot = team_performance_plot, width = 12, height = 8, dpi = 300)
+
+```
 
 ## Question 4: How does pitstop time affect the race outcome:
 
