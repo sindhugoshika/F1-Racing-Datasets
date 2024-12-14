@@ -226,19 +226,19 @@ ggplot(telemetry, aes(x = distance, y = speed)) +
 
 This analysis explores how F1 teams’ lap times improve during a race and compares their performance across different types of circuits, focusing on the 2022 and 2023 seasons.
 
-### Data Collection
+### Data Collection:
 
 Lap data, race schedules, and circuit information were gathered using the `f1dataR` package.
 
 Circuits were categorized as "Technical," "High-Speed," or "Other."
 
-### Data Preprocessing
+### Data Preprocessing:
 
 Lap times were merged with team and circuit data.
 
 Only the top 7 circuits were selected for analysis, and lap times were converted to numeric values.
 
-### Data Visualization
+### Data Visualization:
 
 A Scatter plot was created to show average lap times of teams across circuits.
 
@@ -246,7 +246,7 @@ Each circuit is displayed in a separate panel, with teams color-coded for clarit
 
 Titles, labels, and themes were customized to ensure readability.
 
-### Data Analysis
+### Data Analysis:
 
 ```{r}
 # Load necessary libraries
@@ -256,24 +256,6 @@ library(ggplot2)
 
 # Define the seasons to include
 seasons <- c(2022, 2023)
-
-# Load the schedule and circuits for the season
-race_schedule <- load_schedule(season)
-circuits_data <- load_circuits()
-
-# Define circuit types (add more classifications as needed)
-circuit_types <- circuits_data %>%
-  mutate(
-    type = case_when(
-      circuit_name %in% c("Circuit de Monaco", "Baku City Circuit") ~ "Technical Circuit",
-      circuit_name %in% c("Silverstone Circuit", "Red Bull Ring") ~ "High-Speed Circuit",
-      TRUE ~ "Other"
-    )
-  )
-
-# Ensure `laps_data$season` matches the type of `race_schedule$season`
-laps_data <- laps_data %>%
-  mutate(season = as.character(season))  # Convert laps_data$season to character
 
 # Initialize an empty list to store lap data across seasons
 laps_list <- list()
@@ -307,38 +289,52 @@ for (season in seasons) {
 # Combine all races' lap data into one data frame
 laps_data <- bind_rows(laps_list)
 
-```
+# Load circuits data
+circuits_data <- load_circuits()
 
-```{r}
+# Define the top 7 circuits
+top_7_circuits <- c(
+  "Albert Park Grand Prix Circuit",
+  "Autodromo Nazionale di Monza",
+  "Circuit de Monaco",
+  "Circuit de Spa-Francorchamps",
+  "Red Bull Ring",
+  "Silverstone Circuit",
+  "Suzuka Circuit"
+)
+
 # Filter data for the top 7 circuits
 top_circuits_data <- laps_data %>%
   inner_join(race_schedule, by = c("season", "round")) %>%
   filter(circuit_name %in% top_7_circuits) %>%
   mutate(lapTime = as.numeric(time_sec))  # Convert lap time to numeric
 
-```
+# Calculate average lap time for each team per circuit
+heatmap_data <- top_circuits_data %>%
+  group_by(circuit_name, team) %>%
+  summarize(avg_lap_time = mean(lapTime, na.rm = TRUE)) %>%
+  ungroup()
 
-```{r}
+# Define team colors
+team_colors <- c(
+  "mercedes" = "#00D2BE", 
+  "ferrari" = "#DC0000", 
+  "red bull" = "#0600EF", 
+  "alpine" = "#0090FF", 
+  "haas" = "#F62039", 
+  "aston martin" = "#006F62", 
+  "alphatauri" = "#2B4562", 
+  "mclaren" = "#FF8700", 
+  "alfa" = "#900000", 
+  "williams" = "#005AFF"
+)
 
-ggplot(heatmap_data, aes(x = team, y = avg_lap_time, group = team, color = team)) +
+# Create the plot
+team_performance_plot <- ggplot(heatmap_data, aes(x = team, y = avg_lap_time, group = team, color = team)) +
   geom_line(size = 1.2, alpha = 0.9) +  # Thicker and darker lines
   geom_point(size = 4, alpha = 1) +  # Fully opaque and darker points
-  scale_color_manual(
-    values = c(
-      "mercedes" = "#00D2BE", 
-      "ferrari" = "#DC0000", 
-      "red bull" = "#0600EF", 
-      "alpine" = "#0090FF", 
-      "haas" = "#F62039", 
-      "aston martin" = "#006F62", 
-      "alphatauri" = "#2B4562", 
-      "mclaren" = "#FF8700", 
-      "alfa" = "#900000", 
-      "williams" = "#005AFF"
-    ),
-    name = "Team"
-  ) +
-  facet_wrap(~ circuit_name, scales = "fixed", labeller = label_wrap_gen()) +  # Ensure consistent scaling
+  scale_color_manual(values = team_colors, name = "Team") +
+  facet_wrap(~ circuit_name, scales = "fixed", labeller = label_wrap_gen()) +
   labs(
     title = "Team Performance Across Top 7 Famous Circuits",
     subtitle = "Faceted plots showing lap time trends for each circuit",
@@ -357,8 +353,11 @@ ggplot(heatmap_data, aes(x = team, y = avg_lap_time, group = team, color = team)
     panel.grid.major.y = element_line(color = "grey", linetype = "dashed")  # Enhance y-axis visibility
   )
 
-# Save the plot
-#ggsave("team_performance_plot.png", plot = team_performance_plot, width = 12, height = 8, dpi = 300)
+# Display the plot
+print(team_performance_plot)
+
+# Save the plot as an image file
+# ggsave("team_performance_plot.png", plot = team_performance_plot, width = 12, height = 8, dpi = 300)
 
 ```
 
