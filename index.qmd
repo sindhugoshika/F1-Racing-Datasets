@@ -226,19 +226,19 @@ ggplot(telemetry, aes(x = distance, y = speed)) +
 
 This analysis explores how F1 teams’ lap times improve during a race and compares their performance across different types of circuits, focusing on the 2022 and 2023 seasons.
 
-### Data Collection
+### Data Collection:
 
 Lap data, race schedules, and circuit information were gathered using the `f1dataR` package.
 
 Circuits were categorized as "Technical," "High-Speed," or "Other."
 
-### Data Preprocessing
+### Data Preprocessing:
 
 Lap times were merged with team and circuit data.
 
 Only the top 7 circuits were selected for analysis, and lap times were converted to numeric values.
 
-### Data Visualization
+### Data Visualization:
 
 A Scatter plot was created to show average lap times of teams across circuits.
 
@@ -246,7 +246,7 @@ Each circuit is displayed in a separate panel, with teams color-coded for clarit
 
 Titles, labels, and themes were customized to ensure readability.
 
-### Data Analysis
+### Data Analysis:
 
 ```{r}
 # Load necessary libraries
