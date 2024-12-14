@@ -30,6 +30,13 @@ The data can be utilized to explore various aspects of soccer performance, team 
 
 .
 
+```{r setup, warning=FALSE, error=FALSE, message=FALSE}
+# Uncomment and Run this chunk if you have never installed this package
+#install.packages("f1dataR")
+#library(f1dataR)
+#setup_fastf1()
+```
+
 **Approach** -
 
 The goal of the project was to visually represent the performance of Monaco Grand Prix winners from 2019 to 2023 by mapping their telemetry data and highlighting RPM variations across the circuit.
@@ -63,6 +70,7 @@ The goal of the project was to visually represent the performance of Monaco Gran
 ```{r winners_monaco, warning=FALSE, error=FALSE, message=FALSE}
 library(ggplot2)
 library(dplyr)
+library(f1dataR)
 library(gridExtra)
 
 # Define driver colors and team names
@@ -131,16 +139,17 @@ for (i in 1:nrow(monaco_winners_df)) {
         y = NULL
       ) +
       theme_minimal() +
-      theme(
+      theme(title = element_text(size = 8),
+            subtitle = element_text(size = 5),
         axis.text = element_blank(),
         axis.ticks = element_blank(),
         panel.grid = element_blank(),
-        legend.title = element_text(size = 12),  # Customize legend text
+        legend.title = element_text(size = 6),  # Customize legend text
         legend.position = "right"
       ) +
       guides(color = guide_colorbar(title = "RPM")) +  # Add RPM color legend
       annotate("text", x = Inf, y = -Inf, label = team_name, 
-               hjust = 1.2, vjust = -1.5, size = 4, color = "black", fontface = "bold")  # Add team label at bottom right
+               hjust = 1.2, vjust = -1.5, size = 2, color = "black", fontface = "bold")  # Add team label at bottom right
   }
 }
 
@@ -158,13 +167,11 @@ plot_grid <- gridExtra::grid.arrange(
   nrow = 2, heights = c(0.1, 1)
 )
 
-ggsave("monaco_gp_winners_2019_2023.png", plot = plot_grid, width = 12, height = 10, dpi = 300)
+#ggsave("monaco_gp_winners_2019_2023.png", plot = plot_grid, width = 12, height = 10, dpi = 300)
 
 ```
 
-## Question 2
-
-2.  How can a driver's performance on their fastest lap be analyzed using speed and throttle data?
+## Question 2. How can a driver's performance on their fastest lap be analyzed using speed and throttle data?
 
 **Introduction**
 
@@ -172,7 +179,7 @@ This analysis focuses on leveraging telemetry data to evaluate the performance o
 
 **Approach**
 
-## Data Collection:
+**Data Collection**
 
 The telemetry data for Max Verstappen (VER) during the 2023 season, Round 1, was retrieved using the f1dataR package. The fastest lap for the driver was identified using the load_laps function, and its corresponding telemetry was extracted with load_driver_telemetry. Data Processing:
 
@@ -180,7 +187,7 @@ The fastest lap was filtered by finding the lap with the minimum time_sec value.
 
 A line plot was created to visualize speed across the lap distance, with throttle usage represented as a gradient. This allowed us to see the relationship between acceleration, deceleration, and speed consistency across different track sections.
 
-```{r}
+```{r driver_performance, warning=FALSE, error=FALSE,message=FALSE}
 library(f1dataR)
 library(ggplot2)
 library(dplyr)
@@ -248,7 +255,7 @@ Titles, labels, and themes were customized to ensure readability.
 
 ### Data Analysis:
 
-```{r}
+```{r lap_time,warning=FALSE, error=FALSE,message=FALSE}
 # Load necessary libraries
 library(f1dataR)
 library(dplyr)
