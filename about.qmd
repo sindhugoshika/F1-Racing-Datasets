@@ -1,0 +1,53 @@
+---
+title: "About"
+---
+
+## Team Name: Pixels and Patterns
+
+### **About This Project**
+
+This project leverages the `f1dataR` package to conduct an in-depth analysis of Formula 1 racing data. The primary goal of the project is to explore key aspects of driver and team performance across various circuits and races. By utilizing real-world Formula 1 data, the project aims to create compelling visualizations and actionable insights for fans, analysts, and racing teams.
+
+### **Objectives**
+
+1.  Analyze performance trends for drivers and teams over the course of races and seasons.
+
+2.  Investigate the impact of pit stop strategies, circuit characteristics, and race conditions on outcomes.
+
+3.  Visualize telemetry data (e.g., speed, throttle, braking) to understand driver behavior and vehicle performance.
+
+4.  Compare lap time improvements and team strategies across different circuit types.
+
+5.  Create visually engaging and insightful plots to effectively communicate findings.
+
+### **Key Features**
+
+-   **Data Exploration**: Includes lap times, pit stops, telemetry, and race results for recent Formula 1 seasons.
+
+-   **Visualization**: Generates intuitive plots to showcase performance trends, driver strategies, and circuit-specific dynamics.
+
+-   **Insights**: Highlights critical factors influencing race outcomes, including team strategies and driver adaptability.
+
+### **Technologies Used**
+
+-   **Programming Language**: R
+
+-   **Package**: `f1dataR` for accessing and analyzing Formula 1 data
+
+-   **Visualization Tools**: `ggplot2` for creating plots and dashboards
+
+-   **Version Control**: GitHub for managing project files and collaboration
+
+### **Motivation**
+
+Formula 1 combines engineering excellence, driver skill, and strategic decisions, making it a rich field for data analysis. This project is designed to uncover insights from F1 data, demonstrate advanced analytical techniques, and present findings in a visually appealing way. Whether you're a fan, analyst, or engineer, this project offers valuable perspectives on what makes a race successful.
+
+### Team Members :
+
+-   Yogeshwar Sapkal - Master's in Information Science
+
+-   Sanjeev Ponugumati - Master's in Information Science
+
+-   Sindhu Goshika - Master's in Information Science
+
+-   Sahana Santhosh - Master's in Information Science

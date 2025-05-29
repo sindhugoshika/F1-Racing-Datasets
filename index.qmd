@@ -1,0 +1,643 @@
+---
+title: "Project Writeup"
+subtitle: "Formula 1 - Racing through Data"
+author: 
+  - name: "Pixels and Patterns"
+    affiliations:
+      - name: "College of Information Science, University of Arizona"
+      
+format:
+  html:
+    code-tools: true
+    code-overflow: wrap
+    code-line-numbers: true
+    embed-resources: true
+editor: visual
+code-annotations: hover
+execute:
+  warning: false
+---
+
+## Introduction
+
+This dataset contains match-level data from the F1 Racing Championship season, covering various fixtures between teams across different dates. For each match, the dataset records essential information, including the home and away teams, the goals scored by each team (both full-time and half-time), and the final result (win, loss, or draw). Additional metrics provide insights into team performances, such as the number of shots on target, fouls committed, and corner kicks. Furthermore, the dataset tracks disciplinary actions with columns for yellow and red cards, offering a comprehensive view of each game's flow and outcome.
+
+The data can be utilized to explore various aspects of soccer performance, team strategies, and match outcomes. By examining trends in team behavior—such as shooting accuracy or foul patterns—analysts can gain insights into factors that influence match results. This makes the dataset valuable for statistical analysis and predictions related to soccer matches.
+
+## Question 1: How can we visualize the race winners on the Circuit de Monaco over the past four years (2019-2023) in a clear and insightful way using R?:
+
+**Introduction** - This project leverages the “f1dataR” library to analyze historical Formula 1 data for the seasons 2021 to 2023. The primary goal is to explore the historical performance of drivers and teams on one of the most iconic circuits in Formula 1, providing a focused analysis of winners and trends at the Circuit de Monaco.
+
+.
+
+```{r setup, warning=FALSE, error=FALSE, message=FALSE}
+# Uncomment and Run this chunk if you have never installed this package
+#install.packages("f1dataR")
+#library(f1dataR)
+#setup_fastf1()
+```
+
+**Approach** -
+
+The goal of the project was to visually represent the performance of Monaco Grand Prix winners from 2019 to 2023 by mapping their telemetry data and highlighting RPM variations across the circuit.
+
+**Data Collection**:
+
+-   The project utilized the “f1dataR” package to extract telemetry data for each year's Monaco Grand Prix winner, covering 2019, 2021, 2022, and 2023 (the 2020 Monaco GP was canceled).
+
+-   The winners' details, including driver and constructor names, were manually identified from F1 standings for each year.
+
+-   Telemetry data for each driver was extracted, focusing on x, y coordinates (track map) and RPM (engine speed).
+
+1.  **Data Processing**:
+
+    -   Telemetry data was cleaned by filtering out missing or infinite values to ensure accurate visual representation.
+
+    -   Team-specific color gradients were assigned to each winner based on their constructor (e.g., Mercedes for Hamilton, Red Bull for Verstappen and Perez).
+
+    -   A label denoting the team name was added to each plot for easy identification of constructors.
+
+2.  **Visualization**:
+
+    -   Track maps were created for each driver, with RPM represented as a color gradient along the circuit path.
+
+    -   Each driver's telemetry visualization was plotted in a grid using facets, allowing side-by-side comparisons of winners over the years.
+
+    -   The final visualization included a title and year-specific annotations to provide context and insights into the performance of drivers across the Monaco Grand Prix.
+
+**Analysis** -
+
+```{r winners_monaco, warning=FALSE, error=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(f1dataR)
+library(gridExtra)
+
+# Define driver colors and team names
+driver_colors <- list(
+  hamilton = c("#00A19C", "#C6C6C6"),  # Mercedes colors
+  max_verstappen = c("#121F45", "#FFC906"),  # Red Bull colors
+  perez = c("#121F45", "#CC1E4A")  # Red Bull colors for Perez
+)
+
+# Define the winners and years
+monaco_winners_df <- data.frame(
+  Year = c(2019, 2021, 2022, 2023),
+  Winner = c("hamilton", "max_verstappen", "perez", "max_verstappen"),
+  Constructor = c("mercedes", "red_bull", "red_bull", "red_bull"),
+  stringsAsFactors = FALSE
+)
+
+# Initialize an empty list to store telemetry data for each driver
+track_data <- list()
+
+# Load telemetry data for each driver from 2019 to 2023
+for (i in 1:nrow(monaco_winners_df)) {
+  winner <- monaco_winners_df$Winner[i]
+  year <- monaco_winners_df$Year[i]
+  driver <- ifelse(winner == "hamilton", "HAM", 
+                   ifelse(winner == "max_verstappen", "VER", "PER"))
+  
+  # Load telemetry for the Monaco Grand Prix
+  telem <- load_driver_telemetry(season = year, driver = driver, round = "Monaco Grand Prix")
+  
+  # Clean telemetry data
+  telem_clean <- telem %>%
+    filter(!is.na(x), !is.na(y), !is.na(rpm)) %>%
+    filter(is.finite(x), is.finite(y), is.finite(rpm))
+  
+  # Store the cleaned telemetry data
+  track_data[[paste(driver, year, sep = "_")]] <- telem_clean
+}
+
+# Create track map plots for each driver using telemetry data and assigned colors
+track_plots <- list()
+
+# Generate track maps for each driver and year
+for (i in 1:nrow(monaco_winners_df)) {
+  winner <- monaco_winners_df$Winner[i]
+  year <- monaco_winners_df$Year[i]
+  driver <- ifelse(winner == "hamilton", "HAM", 
+                   ifelse(winner == "max_verstappen", "VER", "PER"))
+  
+  # Get the corresponding color for the driver
+  color_low <- driver_colors[[winner]][1]
+  color_high <- driver_colors[[winner]][2]
+  team_name <- toupper(monaco_winners_df$Constructor[i])  # Get the team name
+  
+  # Generate the plot if the telemetry data exists
+  if (paste(driver, year, sep = "_") %in% names(track_data)) {
+    telem_clean <- track_data[[paste(driver, year, sep = "_")]]
+    
+    track_plots[[paste(driver, year, sep = "_")]] <- ggplot(telem_clean, aes(x = x, y = y)) +
+      geom_path(aes(color = rpm), size = 1.5) +  # Color the path based on RPM
+      scale_color_gradient(low = color_low, high = color_high) +  # Team colors for RPM
+      labs(
+        title = paste("Monaco GP Track Map - RPM for", toupper(winner), year),
+        subtitle = paste("Telemetry from", toupper(winner), "in Monaco GP", year),
+        x = NULL,
+        y = NULL
+      ) +
+      theme_minimal() +
+      theme(title = element_text(size = 8),
+            subtitle = element_text(size = 5),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        legend.title = element_text(size = 6),  # Customize legend text
+        legend.position = "right"
+      ) +
+      guides(color = guide_colorbar(title = "RPM")) +  # Add RPM color legend
+      annotate("text", x = Inf, y = -Inf, label = team_name, 
+               hjust = 1.2, vjust = -1.5, size = 2, color = "black", fontface = "bold")  # Add team label at bottom right
+  }
+}
+
+# Create the title grob
+title <- grid::textGrob("Winners of Monaco GP (2019-2023)", gp = grid::gpar(fontsize = 20, fontface = "bold"))
+
+# Display the track maps in a 2x2 grid with a title on top
+plot_grid <- gridExtra::grid.arrange(
+  title,
+  gridExtra::arrangeGrob(
+    track_plots[["HAM_2019"]], track_plots[["VER_2021"]],
+    track_plots[["PER_2022"]], track_plots[["VER_2023"]],
+    nrow = 2, ncol = 2
+  ),
+  nrow = 2, heights = c(0.1, 1)
+)
+
+#ggsave("monaco_gp_winners_2019_2023.png", plot = plot_grid, width = 12, height = 10, dpi = 300)
+
+```
+
+## Question 2. How can a driver's performance on their fastest lap be analyzed using speed and throttle data?
+
+**Introduction**
+
+This analysis focuses on leveraging telemetry data to evaluate the performance of a Formula 1 driver during their fastest lap. By visualizing speed and throttle data over the course of a lap, we can uncover nuanced insights into the driver’s approach to track sections, their use of throttle, and overall efficiency.
+
+**Approach**
+
+**Data Collection**
+
+The telemetry data for Max Verstappen (VER) during the 2023 season, Round 1, was retrieved using the f1dataR package. The fastest lap for the driver was identified using the load_laps function, and its corresponding telemetry was extracted with load_driver_telemetry. Data Processing:
+
+The fastest lap was filtered by finding the lap with the minimum time_sec value. Telemetry data for the specific lap was processed to include speed, throttle, and distance metrics. Visualization:
+
+A line plot was created to visualize speed across the lap distance, with throttle usage represented as a gradient. This allowed us to see the relationship between acceleration, deceleration, and speed consistency across different track sections.
+
+```{r driver_performance, warning=FALSE, error=FALSE,message=FALSE}
+library(f1dataR)
+library(ggplot2)
+library(dplyr)
+
+year <- 2023
+round <- 1
+driver_code <- "VER" # Change as needed
+
+laps <- load_laps(year, round)
+
+driver_laps <- laps %>% filter(driver_code == driver_code)
+
+fastest_lap <- driver_laps %>% filter(time_sec == min(time_sec, na.rm = TRUE))
+
+fastest_lap_number <- fastest_lap$lap[1]
+
+telemetry <- load_driver_telemetry(
+  season = year,
+  round = round,
+  session = "R",
+  driver = driver_code,
+  lap = fastest_lap_number
+)
+
+# Visualization: Speed vs Distance with Throttle Usage
+ggplot(telemetry, aes(x = distance, y = speed)) +
+  geom_line(color = "blue", size = 1) +
+  geom_point(aes(color = throttle), size = 0.8) +
+  scale_color_gradient(low = "yellow", high = "red", name = "Throttle (%)") +
+  labs(
+    title = paste("Driver Performance Analysis:", driver_code),
+    subtitle = paste("Fastest Lap - Round", round, year),
+    x = "Distance (m)",
+    y = "Speed (km/h)"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", size = 14))
+```
+
+## Question 3: How do each F1 team’s lap times improve over the course of a race, and how do these improvements compare across different circuit types?
+
+### Introduction
+
+This analysis explores how F1 teams’ lap times improve during a race and compares their performance across different types of circuits, focusing on the 2022 and 2023 seasons.
+
+### Data Collection:
+
+Lap data, race schedules, and circuit information were gathered using the `f1dataR` package.
+
+Circuits were categorized as "Technical," "High-Speed," or "Other."
+
+### Data Preprocessing:
+
+Lap times were merged with team and circuit data.
+
+Only the top 7 circuits were selected for analysis, and lap times were converted to numeric values.
+
+### Data Visualization:
+
+A Scatter plot was created to show average lap times of teams across circuits.
+
+Each circuit is displayed in a separate panel, with teams color-coded for clarity.
+
+Titles, labels, and themes were customized to ensure readability.
+
+### Data Analysis:
+
+```{r lap_time,warning=FALSE, error=FALSE,message=FALSE}
+# Load necessary libraries
+library(f1dataR)
+library(dplyr)
+library(ggplot2)
+
+# Define the seasons to include
+seasons <- c(2022, 2023)
+
+# Initialize an empty list to store lap data across seasons
+laps_list <- list()
+
+# Loop through each season and each race to load lap data
+for (season in seasons) {
+  # Load the schedule for the current season
+  race_schedule <- load_schedule(season)
+  
+  # Loop through each race in the schedule
+  for (i in seq_along(race_schedule$round)) {
+    round_num <- as.integer(race_schedule$round[i])
+    
+    # Load lap data for the race
+    laps <- load_laps(season = season, round = round_num)
+    
+    # Load results data to get constructor (team) information
+    results <- load_results(season = season, round = round_num)
+    
+    # Merge lap data with results data to include the constructor (team)
+    laps_with_team <- laps %>%
+      left_join(results %>% select(driver_id, constructor_id), by = "driver_id") %>%
+      rename(team = constructor_id) %>%
+      mutate(round = race_schedule$round[i], season = as.character(season))  # Add round and season
+    
+    # Append to the list
+    laps_list[[length(laps_list) + 1]] <- laps_with_team
+  }
+}
+
+# Combine all races' lap data into one data frame
+laps_data <- bind_rows(laps_list)
+
+# Load circuits data
+circuits_data <- load_circuits()
+
+# Define the top 7 circuits
+top_7_circuits <- c(
+  "Albert Park Grand Prix Circuit",
+  "Autodromo Nazionale di Monza",
+  "Circuit de Monaco",
+  "Circuit de Spa-Francorchamps",
+  "Red Bull Ring",
+  "Silverstone Circuit",
+  "Suzuka Circuit"
+)
+
+# Filter data for the top 7 circuits
+top_circuits_data <- laps_data %>%
+  inner_join(race_schedule, by = c("season", "round")) %>%
+  filter(circuit_name %in% top_7_circuits) %>%
+  mutate(lapTime = as.numeric(time_sec))  # Convert lap time to numeric
+
+# Calculate average lap time for each team per circuit
+heatmap_data <- top_circuits_data %>%
+  group_by(circuit_name, team) %>%
+  summarize(avg_lap_time = mean(lapTime, na.rm = TRUE)) %>%
+  ungroup()
+
+# Define team colors
+team_colors <- c(
+  "mercedes" = "#00D2BE", 
+  "ferrari" = "#DC0000", 
+  "red bull" = "#0600EF", 
+  "alpine" = "#0090FF", 
+  "haas" = "#F62039", 
+  "aston martin" = "#006F62", 
+  "alphatauri" = "#2B4562", 
+  "mclaren" = "#FF8700", 
+  "alfa" = "#900000", 
+  "williams" = "#005AFF"
+)
+
+# Create the plot
+team_performance_plot <- ggplot(heatmap_data, aes(x = team, y = avg_lap_time, group = team, color = team)) +
+  geom_line(size = 1.2, alpha = 0.9) +  # Thicker and darker lines
+  geom_point(size = 4, alpha = 1) +  # Fully opaque and darker points
+  scale_color_manual(values = team_colors, name = "Team") +
+  facet_wrap(~ circuit_name, scales = "fixed", labeller = label_wrap_gen()) +
+  labs(
+    title = "Team Performance Across Top 7 Famous Circuits",
+    subtitle = "Faceted plots showing lap time trends for each circuit",
+    x = "Team",
+    y = "Average Lap Time (seconds)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    axis.text.y = element_text(size = 10),
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 12, face = "italic"),
+    legend.position = "right",  # Place legend on the right
+    panel.spacing = unit(1, "lines"),  # Add space between panels
+    strip.text = element_text(size = 10),  # Adjust facet label size
+    panel.grid.major.y = element_line(color = "grey", linetype = "dashed")  # Enhance y-axis visibility
+  )
+
+# Display the plot
+print(team_performance_plot)
+
+# Save the plot as an image file
+# ggsave("team_performance_plot.png", plot = team_performance_plot, width = 12, height = 8, dpi = 300)
+
+```
+
+## Question 4: How does pitstop time affect the race outcome:
+
+**Introduction** - This project leverages the “f1dataR” library to analyze historical Formula 1 data for the seasons 2021 to 2023. The primary goal is to identify annual champions, examine the circuits they competed on, and evaluate their average pitstop times across races. By visualizing these metrics, the project aims to uncover patterns and insights into the performance of championship-winning drivers and the impact of specific circuits on pitstop durations.
+
+**Approach** -
+
+**Data Collection**:
+
+-   The project utilized the “f1dataR” library to extract data on driver standings, circuit schedules, and pitstop details for the seasons 2021, 2022, and 2023.
+
+-   Standings data were merged with driver details to identify the champion of each season based on final rankings.
+
+1.  **Data Processing**:
+
+    -   Circuit schedules for each season were extracted, including the names of circuits and corresponding rounds.
+
+    -   Pitstop data for each champion across all circuits were retrieved. The average pitstop duration was calculated for each circuit where data was available.
+
+2.  **Visualization**:
+
+    -   A bar chart was created to compare the average pitstop times of champions across different circuits over the three seasons. Distinct colors were assigned to circuits to enhance clarity and visual appeal.
+
+    -   The visualization incorporated facets for each year, allowing year-wise comparisons while maintaining a focus on circuit-level details.
+
+**Analysis** -
+
+```{r champion_pitstop_time, warning=FALSE, error=FALSE, message=FALSE}
+library(f1dataR)
+library(ggplot2)
+
+years <- 2021:2023
+champions <- data.frame(Year = integer(), DriverId = character(), Name = character())
+
+for (year in years) {
+  standings <- load_standings(season = year, round = "last", type = "driver")
+  drivers <- load_drivers(season = year)
+  drivers$driverName <- paste(drivers$given_name, drivers$family_name)
+  standings_with_names <- merge(
+    standings,
+    drivers[, c("driver_id", "driverName")],
+    by = "driver_id",
+    all.x = TRUE
+  )
+  champion <- standings_with_names[standings_with_names$position == 1, c("driver_id", "driverName")]
+  champions <- rbind(champions, data.frame(Year = year, DriverId = champion$driver_id, driverName = champion$driverName))
+}
+
+circuits <- data.frame(Year = integer(), Circuit = character(), Round = integer())
+
+for (year in years) {
+  schedule <- load_schedule(season = year)
+  circuits <- rbind(circuits, data.frame(Year = year, Circuit = schedule$circuit_name, Round = schedule$round))
+}
+
+champion_pitstops <- data.frame(Year = integer(), Circuit = character(), AvgPitstop = numeric())
+
+for (year in years) {
+  champion_id <- champions[champions$Year == year, "DriverId"]
+  year_circuits <- circuits[circuits$Year == year, ]
+  
+  for (round in year_circuits$Round) {
+    pitstops <- try(load_pitstops(season = year, round = round), silent = TRUE)
+    if (!inherits(pitstops, "try-error") && !is.null(pitstops)) {
+      champ_pitstops <- pitstops[pitstops$driver_id == champion_id, ]
+      avg_time <- mean(as.numeric(champ_pitstops$duration), na.rm = TRUE)
+      circuit <- year_circuits[year_circuits$Round == round, "Circuit"]
+      champion_pitstops <- rbind(champion_pitstops, data.frame(Year = year, Circuit = circuit, AvgPitstop = avg_time))
+    }
+  }
+}
+
+circuit_colors <- c(
+  "Bahrain International Circuit" = "#3cb44b",
+  "Autodromo Enzo e Dino Ferrari" = "#ffe119",
+  "Autódromo Internacional do Algarve" = "#4363d8",
+  "Circuit de Barcelona-Catalunya" = "#f58231",
+  "Circuit de Monaco" = "#911eb4",
+  "Baku City Circuit" = "#42d4f4",
+  "Circuit Paul Ricard" = "#f032e6",
+  "Red Bull Ring" = "#e6194B",
+  "Silverstone Circuit" = "#bfef45",
+  "Hungaroring" = "#fabed4",
+  "Circuit de Spa-Francorchamps" = "#469990",
+  "Circuit Park Zandvoort" = "#dcbeff",
+  "Autodromo Nazionale di Monza" = "#9A6324",
+  "Sochi Autodrom" = "#fffac8",
+  "Istanbul Park" = "#800000",
+  "Circuit of the Americas" = "#aaffc3",
+  "Autódromo Hermanos Rodríguez" = "#808000",
+  "Autódromo José Carlos Pace" = "#ffd8b1",
+  "Losail International Circuit" = "#000075",
+  "Jeddah Corniche Circuit" = "#a9a9a9",
+  "Yas Marina Circuit" = "#DA9100",
+  "Albert Park Grand Prix Circuit" = "gold",
+  "Miami International Autodrome" = "#87A96B",
+  "Circuit Gilles Villeneuve" = "lightgreen",
+  "Marina Bay Street Circuit" = "#9467bd",
+  "Suzuka Circuit" = "#8c564b",
+  "Las Vegas Strip Street Circuit" = "#e377c2"
+)
+
+ggplot(champion_pitstops, aes(x = Circuit, y = AvgPitstop, fill = Circuit)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.8) +scale_fill_manual(values = circuit_colors) +
+  labs(
+    title = "Pitstop Times of Formula 1 Champions Across Circuits (2021-2023)",
+    subtitle = "Analysis of pitstop times across circuits for the last 3 years",
+    caption = "Data Source: f1dataR",
+    x = "Circuit",
+    y = "Pitstop Time (seconds)"
+  ) +
+  scale_y_continuous(breaks = seq(0, 40, 5))+
+  facet_wrap(~ Year, scales = "free_x") +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 11, hjust = 0.5),
+    plot.subtitle = element_text(size = 8, hjust = 0.5, color = "gray40"),
+    plot.caption = element_text(size = 6, hjust = 1, face = "italic"),
+    axis.text.y = element_text(hjust = 1, size = 9),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.x = element_text(face = "bold", size = 10),
+    strip.text = element_text(face = "bold", size = 12, color = "black"),
+    legend.position = "bottom",
+    legend.title = element_text(face = "bold", size = 7),
+    legend.text = element_text(size = 6),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = "gray90"),
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    legend.key.size = unit(4, 'mm')
+  )
+```
+
+**Discussion** -
+
+**Champion Performance**:
+
+-   The champions for the seasons 2021, 2022, and 2023 were identified, showing consistency in top driver performance across the years.
+
+-   The integration of driver standings and detailed circuit data enabled a comprehensive overview of each champion's season.
+
+1.  **Circuit-Specific Insights**:
+
+    -   Variability in pitstop times across circuits suggests that certain tracks pose unique challenges or opportunities for efficient pitstops.
+
+    -   Circuits like Monaco and Spa-Francorchamps, known for their technical demands, exhibited distinct average pitstop durations for champions.
+
+2.  **Implications of Findings**:
+
+    -   The analysis underscores the importance of pitstop strategy as a critical component of championship success. Teams may tailor pitstop strategies to account for circuit-specific characteristics.
+
+    -   Visualizing data over multiple seasons provides a historical context that can inform future predictions and performance evaluations.
+
+**Introduction** - The aim is to visualize driver positions over race laps, evaluate the impact of pitstop durations on race outcomes, and identify patterns that influence race strategy. The Abu Dhabi Grand Prix serves as a focal point for this analysis, providing an opportunity to explore how pitstops and race dynamics influence driver rankings.
+
+**Approach** -
+
+**Data Collection**:
+
+-   Standings and telemetry data for the 2021 season were loaded to contextualize driver performance.
+
+-   For the 2023 season, race telemetry, lap data, and pitstop information were extracted, with a specific focus on the Abu Dhabi Grand Prix.
+
+-   Driver mappings were utilized to standardize data and enhance interpretability.
+
+1.  **Data Processing**:
+
+    -   Data for laps and pitstops were merged, allowing for a consolidated view of driver positions and pitstop durations.
+
+    -   Non-numeric fields, such as pitstop durations, were converted to appropriate numeric types to facilitate analysis.
+
+    -   Missing data points, such as laps without pitstops, were handled by assigning default values to ensure continuity in visualization.
+
+2.  **Visualization**:
+
+    -   A line plot was created to visualize driver positions over the course of the race.
+
+    -   Pitstop durations were represented as point sizes on the plot, highlighting their timing and impact on race positions.
+
+    -   Custom color mapping was applied to distinguish drivers effectively, while a minimal theme enhanced clarity and focus on the data.**Analysis** -
+
+```{r position_vs_pitstop, warning=FALSE,error=FALSE,message=FALSE}
+library(dplyr)
+chp <- load_standings(season = 2021, round = "last", type = "driver")
+telem <- load_driver_telemetry(season = 2023, round = "Bahrain", session = "R", driver = "HAM", laps = "all")
+res <- load_results(season = 2023, round = "last")
+
+season <- 2023
+round <- "last"
+
+lap_data <- load_session_laps(season = season, round = round, session = "R")
+
+pitstop_data <- load_pitstops(season = season, round = round)
+pitstop_data$duration <- as.numeric(pitstop_data$duration)
+pitstop_data$lap <- as.numeric(pitstop_data$lap)
+
+driver_mapping <- load_drivers(season = season)[, c("driver_id", "code")]
+colnames(driver_mapping)[colnames(driver_mapping) == "code"] <- "driver"
+pitstop_data <- merge(pitstop_data, driver_mapping, by = "driver_id", all.x = TRUE)
+
+combined_data <- merge(
+  lap_data,
+  pitstop_data[, c("driver", "lap", "duration")],
+  by.x = c("driver", "lap_number"),
+  by.y = c("driver", "lap"),
+  all.x = TRUE
+)
+combined_data$duration[is.na(combined_data$duration)] <- 0
+
+driver_colors <- c(
+  "ALB" = "#1f77b4", "ALO" = "#ff7f0e", "BOT" = "#2ca02c", "GAS" = "#d62728",
+  "HAM" = "#9467bd", "HUL" = "#8c564b", "LEC" = "#e377c2", "MAG" = "#7f7f7f",
+  "NOR" = "#bcbd22", "OCO" = "#17becf", "PER" = "#ff9896", "PIA" = "#98df8a",
+  "RIC" = "#ffbb78", "RUS" = "#c5b0d5", "SAI" = "#c49c94", "SAR" = "#f7b6d2",
+  "STR" = "#c7c7c7", "TSU" = "#dbdb8d", "VER" = "#9edae5", "ZHO" = "#aec7e8"
+)
+
+ggplot(combined_data, aes(x = lap_number, y = position, color = as.factor(driver))) +
+  geom_line(size = 1) +
+  scale_colour_manual(values = driver_colors) +
+  geom_point(data = subset(combined_data, duration > 0), aes(size = duration), shape = 21, fill = "red") +
+  scale_y_reverse(breaks = 1:20) +
+  scale_x_continuous(breaks = seq(0, 60, 5)) +
+  labs(
+    title = "Driver Positions and Pitstop Times in Abu Dhabi Grand Prix",
+    subtitle = "Visualizing race progress and pitstop impacts for all drivers",
+    x = "Lap Number (Multiples of 5)",
+    y = "Race Position (1st = Top)",
+    color = "Driver",
+    size = "Pitstop Duration (seconds)",
+    caption = "Data source: f1dataR"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 10, hjust = 0.5),
+    plot.subtitle = element_text(size = 8, hjust = 0.5, color = "darkgray"),
+    plot.caption = element_text(size = 6, hjust = 1, face = "italic"),
+    axis.title.x = element_text(face = "bold", size = 8),
+    axis.title.y = element_text(face = "bold", size = 8),
+    axis.text = element_text(size = 7),
+    axis.line.x = element_line(color = "black", size = 1),
+    axis.line.y = element_line(color = "black", size = 1),
+    legend.title = element_text(face = "bold", size = 8),
+    legend.text = element_text(size = 6),
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    legend.direction = "vertical",
+    legend.position = "right",
+    legend.box = "horizontal",
+    legend.title.align = 0,
+    legend.key.size = unit(5, 'mm')
+  )
+```
+
+**Discussion** -
+
+**Driver Performance Trends**:
+
+-   The visualization highlights fluctuations in driver positions throughout the race, illustrating how pitstops and race incidents influence rankings.
+
+-   Consistent performance by top drivers, such as Lewis Hamilton (HAM), underscores the importance of maintaining competitive pace and minimizing errors.
+
+1.  **Pitstop Analysis**:
+
+    -   The timing and duration of pitstops emerged as critical factors in shaping race outcomes. Drivers with shorter pitstops generally regained track positions more efficiently.
+
+    -   Variability in pitstop durations across drivers points to differences in team strategy and execution.
+
+2.  **Implications for Strategy**:
+
+    -   The combined analysis of lap data and pitstops provides a detailed view of race strategies. Teams can use similar visualizations to refine pitstop timing and assess the impact of their decisions on race outcomes.
+
+    -   Understanding driver trends over race laps aids in predicting potential overtakes and defending positions effectively.
